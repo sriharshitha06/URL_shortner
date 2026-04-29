@@ -1,0 +1,10 @@
+{
+  "bootcamp": {
+    "product_scenario": "public_consumer",
+    "module_01": {
+      "complete": true
+    },
+    "current_module": 2,
+    "current_step": "context"
+  }
+}

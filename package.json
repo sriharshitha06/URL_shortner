@@ -1,0 +1,15 @@
+{
+  "name": "caw-express-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal Express app with environment validation",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  }
+}
