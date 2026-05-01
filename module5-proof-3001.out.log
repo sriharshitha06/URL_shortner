@@ -1,0 +1,3 @@
+{"level":"info","timestamp":"2026-05-01T14:43:52.928Z","event":"server_started","port":3000}
+{"level":"info","timestamp":"2026-05-01T14:55:24.160Z","event":"request_finished","request_id":"a73235e0-bf8c-4c18-a487-b54cb6cca547","method":"GET","path":"/r/%E0%A4%25A","status":500,"latency_ms":13}
+{"level":"info","timestamp":"2026-05-01T14:55:24.837Z","event":"request_finished","request_id":"fe652492-1e0c-43c9-a4d9-21f39684a25f","method":"GET","path":"/links","status":400,"latency_ms":2,"principal_id":"A"}

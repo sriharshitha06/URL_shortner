@@ -1,0 +1,8 @@
+{"level":"info","timestamp":"2026-05-01T14:44:22.248Z","event":"server_started","port":3001}
+{"level":"info","timestamp":"2026-05-01T14:44:44.006Z","event":"request_finished","request_id":"1b6a5ce2-aef9-4080-8310-fb0d2d2cd092","method":"GET","path":"/links","status":401,"latency_ms":5}
+{"level":"info","timestamp":"2026-05-01T15:03:15.080Z","event":"request_finished","request_id":"probe-74190126-006d-4c57-9547-6a730ff0241f","method":"GET","path":"/links","status":400,"latency_ms":1,"principal_id":"A"}
+{"level":"info","timestamp":"2026-05-01T15:07:08.334Z","event":"request_finished","request_id":"probe-70db57c0-f9fe-424d-a127-1f91fc508dce","method":"GET","path":"/links","status":400,"latency_ms":1,"principal_id":"A"}
+{"level":"info","timestamp":"2026-05-01T17:41:24.368Z","event":"request_finished","request_id":"break-probe-1","method":"GET","path":"/links","status":401,"latency_ms":2}
+{"level":"info","timestamp":"2026-05-01T17:41:36.091Z","event":"request_finished","request_id":"break-probe-1","method":"GET","path":"/links","status":400,"latency_ms":1,"principal_id":"A"}
+{"level":"info","timestamp":"2026-05-01T17:41:44.625Z","event":"request_finished","request_id":"break-probe-1","method":"GET","path":"/links","status":400,"latency_ms":1,"principal_id":"A"}
+{"level":"info","timestamp":"2026-05-01T17:42:08.757Z","event":"request_finished","request_id":"break-probe-2","method":"GET","path":"/r/%E0%A4%25A","status":500,"latency_ms":5}

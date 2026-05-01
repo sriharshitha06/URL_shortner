@@ -10,6 +10,10 @@ async function query(text, params = []) {
 }
 
 async function initDatabase() {
+  if (env.useInMemoryStore) {
+    return;
+  }
+
   await query(`
     CREATE TABLE IF NOT EXISTS links (
       id BIGSERIAL PRIMARY KEY,
@@ -17,8 +21,14 @@ async function initDatabase() {
       long_url TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       created_by TEXT NOT NULL DEFAULT 'public',
-      expires_at TIMESTAMPTZ NULL
+      expires_at TIMESTAMPTZ NULL,
+      tags TEXT[] NOT NULL DEFAULT '{}'
     )
+  `);
+
+  await query(`
+    ALTER TABLE links
+    ADD COLUMN IF NOT EXISTS tags TEXT[] NOT NULL DEFAULT '{}'
   `);
 
   await query(`
@@ -49,6 +59,10 @@ async function initDatabase() {
 }
 
 async function closeDatabase() {
+  if (env.useInMemoryStore) {
+    return;
+  }
+
   await pool.end();
 }
 

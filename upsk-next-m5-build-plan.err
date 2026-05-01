@@ -1,0 +1,2 @@
+{"timestamp_unix_ms":1777623513024,"level":"error","message":"command.failed","context":{"command":"next"}}
+Error: Cannot reach server. Check connection.

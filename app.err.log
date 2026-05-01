@@ -1,0 +1,44 @@
+=postgresql://postgres:postgres@localhost:5432/postgres : The term 
+'=postgresql://postgres:postgres@localhost:5432/postgres' is not recognized as the name of a cmdlet, function, script 
+file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct 
+and try again.
+At line:1 char:1
++ ='postgresql://postgres:postgres@localhost:5432/postgres'; ='local-de ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=postgresql://p...t:5432/postgres:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+=local-dev-secret : The term '=local-dev-secret' is not recognized as the name of a cmdlet, function, script file, or 
+operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try 
+again.
+At line:1 char:60
++ ... stgres:postgres@localhost:5432/postgres'; ='local-dev-secret'; ='3000 ...
++                                               ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=local-dev-secret:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+=3000 : The term '=3000' is not recognized as the name of a cmdlet, function, script file, or operable program. Check 
+the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:81
++ ... stgres@localhost:5432/postgres'; ='local-dev-secret'; ='3000'; Set-Lo ...
++                                                           ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=3000:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+D:\CAW\config\env.js:10
+    throw new Error(`Missing required environment variable: ${name}`);
+    ^
+
+Error: Missing required environment variable: DATABASE_URL
+    at getRequiredEnv (D:\CAW\config\env.js:10:11)
+    at Object.<anonymous> (D:\CAW\config\env.js:24:16)
+    at Module._compile (node:internal/modules/cjs/loader:1546:14)
+    at Object..js (node:internal/modules/cjs/loader:1689:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+    at Module.require (node:internal/modules/cjs/loader:1340:12)
+    at require (node:internal/modules/helpers:141:16)
+
+Node.js v22.11.0
