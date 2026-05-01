@@ -6,3 +6,4 @@
 {"level":"info","timestamp":"2026-05-01T17:41:36.091Z","event":"request_finished","request_id":"break-probe-1","method":"GET","path":"/links","status":400,"latency_ms":1,"principal_id":"A"}
 {"level":"info","timestamp":"2026-05-01T17:41:44.625Z","event":"request_finished","request_id":"break-probe-1","method":"GET","path":"/links","status":400,"latency_ms":1,"principal_id":"A"}
 {"level":"info","timestamp":"2026-05-01T17:42:08.757Z","event":"request_finished","request_id":"break-probe-2","method":"GET","path":"/r/%E0%A4%25A","status":500,"latency_ms":5}
+{"level":"info","timestamp":"2026-05-01T17:44:25.341Z","event":"request_finished","request_id":"break-probe-e3175af2-3179-4739-b613-cd650e8ec7fd","method":"GET","path":"/r/%E0%A4%25A","status":500,"latency_ms":4}
