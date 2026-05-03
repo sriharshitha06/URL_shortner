@@ -2,7 +2,7 @@ const express = require("express");
 const crypto = require("crypto");
 const env = require("../config/env");
 const { requireApiKey } = require("./auth");
-const { closeDatabase, initDatabase } = require("./db");
+const { closeDatabase, initDatabase, query } = require("./db");
 const { createRateLimiter } = require("./rate-limit");
 const { sendError } = require("./http-response");
 const logger = require("./logger");
@@ -17,6 +17,7 @@ const {
 } = require("./link-store");
 
 const app = express();
+const HOST = "0.0.0.0";
 
 app.set("trust proxy", true);
 
@@ -282,6 +283,29 @@ app.get("/", (_req, res) => {
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
+});
+
+app.get("/ready", async (_req, res) => {
+  if (env.useInMemoryStore) {
+    return res.status(200).json({
+      status: "ready",
+      store: "in_memory",
+    });
+  }
+
+  try {
+    await query("SELECT 1");
+
+    return res.status(200).json({
+      status: "ready",
+      store: "postgres",
+    });
+  } catch {
+    return res.status(503).json({
+      status: "not_ready",
+      store: "postgres",
+    });
+  }
 });
 
 if (env.useInMemoryStore) {
@@ -580,12 +604,15 @@ app.use((err, req, res, next) => {
 async function startServer() {
   await initDatabase();
 
-  app.listen(env.port, () => {
+  const server = app.listen(env.port, HOST, () => {
     logger.info({
       event: "server_started",
+      host: HOST,
       port: env.port,
     });
   });
+
+  return server;
 }
 
 process.on("SIGINT", async () => {

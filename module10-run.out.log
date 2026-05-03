@@ -1,0 +1,2 @@
+{"level":"info","timestamp":"2026-05-03T07:15:22.621Z","event":"server_started","port":3000}
+{"level":"info","timestamp":"2026-05-03T07:15:24.437Z","event":"request_finished","request_id":"b27bba8c-799e-4a3b-9a1b-3a216d457f60","method":"GET","path":"/ready","status":200,"latency_ms":7}

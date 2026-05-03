@@ -1,0 +1,3 @@
+{"level":"info","timestamp":"2026-05-03T07:20:14.032Z","event":"server_started","port":3000}
+{"level":"info","timestamp":"2026-05-03T07:20:16.851Z","event":"request_finished","request_id":"70ee6f34-fca5-4547-bb7f-8b90ef876186","method":"GET","path":"/health","status":200,"latency_ms":5}
+{"level":"info","timestamp":"2026-05-03T07:20:16.918Z","event":"request_finished","request_id":"efb8a545-07b6-47b3-bafa-5ba4d255362c","method":"GET","path":"/ready","status":200,"latency_ms":3}
