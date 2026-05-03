@@ -5,7 +5,9 @@
   "description": "Minimal Express app with environment validation",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "node --test test/*.test.js",
+    "module-08:verify": "node scripts/module-08-search-regression.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

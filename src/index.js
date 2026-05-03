@@ -12,6 +12,8 @@ const {
   getLinkByCode,
   getLinkByIdForOwner,
   listLinksForOwner,
+  resetInMemoryStore,
+  searchLinksForOwner,
 } = require("./link-store");
 
 const app = express();
@@ -182,6 +184,56 @@ function normalizeExpiresAt(value) {
   return parsedDate.toISOString();
 }
 
+function normalizeSearchQuery(value) {
+  if (value == null || value === "") {
+    return "";
+  }
+
+  if (typeof value !== "string" || containsControlCharacters(value)) {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+
+  if (trimmedValue.length > 100) {
+    return null;
+  }
+
+  return trimmedValue;
+}
+
+function normalizeOptionalTag(value) {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue || trimmedValue.length > 32) {
+    return undefined;
+  }
+
+  return trimmedValue;
+}
+
+function normalizeTimestampQuery(value) {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return undefined;
+  }
+
+  return parsedDate.toISOString();
+}
+
 async function persistLink({ longUrl, expiresAt, tags, principalId }) {
   let shortCode = createUniqueShortCode();
   let link;
@@ -231,6 +283,13 @@ app.get("/", (_req, res) => {
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
+
+if (env.useInMemoryStore) {
+  app.post("/__test/reset", (_req, res) => {
+    resetInMemoryStore();
+    res.status(204).send();
+  });
+}
 
 async function handleCreateLink(req, res, next) {
   const {
@@ -321,6 +380,89 @@ app.get("/links", requireApiKey, async (req, res, next) => {
       items: links.map((link) => formatLinkResponse(link, req)),
       limit: requestedLimit,
       offset: requestedOffset,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.get("/links/search", requireApiKey, async (req, res, next) => {
+  try {
+    const q = normalizeSearchQuery(req.query.q);
+    const tag = normalizeOptionalTag(req.query.tag);
+    const createdAfter = normalizeTimestampQuery(req.query.created_after);
+    const createdBefore = normalizeTimestampQuery(req.query.created_before);
+    const requestedPage = Number.parseInt(req.query.page ?? "1", 10);
+    const requestedPageSize = Number.parseInt(req.query.page_size ?? "20", 10);
+    const sortBy = req.query.sort_by ?? "created_at";
+    const allowedSortBy = new Set(["created_at", "click_count"]);
+
+    if (q == null) {
+      return sendError(
+        req,
+        res,
+        400,
+        "BAD_REQUEST",
+        "q must be a short text value without control characters."
+      );
+    }
+
+    if (tag === undefined || createdAfter === undefined || createdBefore === undefined) {
+      return sendError(
+        req,
+        res,
+        400,
+        "BAD_REQUEST",
+        "tag and date filters must be valid values."
+      );
+    }
+
+    if (
+      Number.isNaN(requestedPage) ||
+      Number.isNaN(requestedPageSize) ||
+      requestedPage < 1 ||
+      requestedPageSize < 1
+    ) {
+      return sendError(
+        req,
+        res,
+        400,
+        "BAD_REQUEST",
+        "page and page_size must be positive integers."
+      );
+    }
+
+    if (!allowedSortBy.has(sortBy)) {
+      return sendError(
+        req,
+        res,
+        400,
+        "BAD_REQUEST",
+        "sort_by must be one of: created_at, click_count."
+      );
+    }
+
+    const pageSize = Math.min(requestedPageSize, 50);
+    const page = requestedPage;
+    const { items, total } = await searchLinksForOwner({
+      principalId: req.principal_id,
+      queryText: q,
+      tag,
+      createdAfter,
+      createdBefore,
+      page,
+      pageSize,
+      sortBy,
+    });
+
+    return res.json({
+      items: items.map((link) => ({
+        ...formatLinkResponse(link, req),
+        click_count: link.click_count ?? 0,
+      })),
+      page,
+      page_size: pageSize,
+      total,
     });
   } catch (error) {
     return next(error);

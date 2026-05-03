@@ -42,6 +42,18 @@ async function initDatabase() {
   `);
 
   await query(`
+    CREATE INDEX IF NOT EXISTS links_search_document_gin_idx
+    ON links
+    USING GIN (to_tsvector('simple', coalesce(code, '') || ' ' || coalesce(long_url, '')))
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS links_tags_gin_idx
+    ON links
+    USING GIN (tags)
+  `);
+
+  await query(`
     CREATE TABLE IF NOT EXISTS click_events (
       id BIGSERIAL PRIMARY KEY,
       link_id BIGINT NOT NULL REFERENCES links(id) ON DELETE CASCADE,
