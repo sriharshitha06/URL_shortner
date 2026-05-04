@@ -33,39 +33,39 @@ Rollback reliability was compromised by inadequate testing following the infrast
 Log visibility contributed to the issue, as configuration errors were emitted at debug level rather than error level, reducing their prominence during investigation.
 
 ## Action Items
-- Add schema validation for required production configuration fields before deploy.
-  Owner: platform team lead
+- Implement configuration schema validation in the deployment pipeline that blocks releases when required fields are missing for the target environment.
+  Owner: Deployment pipeline process
   Deadline: March 21
-  Definition of done: deployment pipeline blocks releases when required runtime config fields are missing for the target environment, and a failing validation is demonstrated in CI.
+  Definition of done: CI pipeline includes validation step that fails builds with missing config fields, demonstrated by test failure on invalid config.
 
-- Replace broad error handling in order creation with fail-closed behavior for persistence-critical paths.
-  Owner: OrderProcessor team lead
+- Refactor order creation error handling to fail fast on persistence failures rather than masking them with broad exception catching.
+  Owner: Order creation process
   Deadline: March 24
-  Definition of done: if order persistence fails, the service returns a non-200 error, emits an ERROR-level log, and automated tests prove that silent success responses are no longer possible.
+  Definition of done: Code changes ensure non-200 responses and error logs for persistence failures, with automated tests verifying no silent successes.
 
-- Add business-level monitoring for orders created per minute and payment-success-without-order anomalies.
-  Owner: observability team
+- Establish business outcome monitoring including orders-per-minute metrics and payment-to-order mismatch detection.
+  Owner: Monitoring system
   Deadline: March 21
-  Definition of done: dashboard widgets are live for orders-per-minute and payment/order mismatch rate, and an alert pages on-call if orders drop to zero or mismatch exceeds threshold for more than 5 minutes.
+  Definition of done: Dashboards display business metrics with alerts triggering when orders drop to zero or mismatches exceed thresholds for 5+ minutes.
 
-- Align staging and production config schemas.
-  Owner: platform configuration owner
+- Standardize configuration contracts between staging and production environments.
+  Owner: Configuration management process
   Deadline: March 26
-  Definition of done: staging and production use the same config contract for OrderProcessor, and a release check confirms parity before deploy.
+  Definition of done: Automated checks enforce config schema parity, with pre-deploy validation confirming compatibility.
 
-- Test rollback automation after every infrastructure migration and on a recurring schedule.
-  Owner: release engineering owner
+- Establish recurring rollback testing following infrastructure changes and on a monthly schedule.
+  Owner: Release automation process
   Deadline: March 28
-  Definition of done: rollback runbook and script are exercised successfully in a scheduled drill, and the current artifact path is verified automatically.
+  Definition of done: Scheduled drills execute rollback procedures successfully, with automated verification of artifact paths.
 
-- Improve escalation guidance for customer-reported checkout anomalies.
-  Owner: incident response owner
+- Update incident response playbooks to prioritize checkout anomalies as potential processing failures.
+  Owner: Incident response process
   Deadline: March 20
-  Definition of done: support and on-call playbook explicitly treats “charged but no confirmation” as a potential order-processing incident and routes it to immediate investigation.
+  Definition of done: Playbooks include explicit guidance routing "charged without fulfillment" reports to immediate investigation.
 
 ## Lessons Learned
-The most important lesson is that HTTP success is not the same as business success. A service can look healthy at the transport layer while failing at the exact thing customers care about.
+The incident revealed that infrastructure-level monitoring does not guarantee business functionality, highlighting the need for outcome-focused observability.
 
-What worked well was that payment processor logs allowed full reprocessing of affected orders after recovery, which reduced permanent loss. Manual rollback by the platform team also restored the service once the broken automation path was recognized.
+The availability of payment processor logs enabled complete recovery, demonstrating the value of comprehensive transaction recording.
 
-If a similar incident happened tomorrow before these fixes land, the team should immediately check order creation rates and database writes when checkout-related customer reports appear, instead of assuming an email-only problem. The team should also treat rollback automation as untrusted until it has been revalidated.
+Future incidents should prompt immediate checks of business metrics when customer reports suggest processing issues, rather than assuming peripheral problems. Rollback procedures should be treated as untrusted until recently validated.
