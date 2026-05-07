@@ -6,6 +6,7 @@ const { closeDatabase, initDatabase, query } = require("./db");
 const { createRateLimiter } = require("./rate-limit");
 const { sendError } = require("./http-response");
 const logger = require("./logger");
+const teamInvitationsRouter = require("./routes/teamInvitations.routes");
 const {
   createLink,
   deleteLinkByCodeForOwner,
@@ -57,6 +58,7 @@ function requestLogMiddleware(req, res, next) {
 app.use(requestIdMiddleware);
 app.use(requestLogMiddleware);
 app.use(express.json());
+app.use(teamInvitationsRouter);
 
 const createLinkRateLimit = createRateLimiter({
   limit: env.rateLimits.createLinkPerMinute,
@@ -625,13 +627,17 @@ process.on("SIGTERM", async () => {
   process.exit(0);
 });
 
-startServer().catch((error) => {
-  logger.error({
-    event: "server_start_failed",
-    error_name: error.name,
-    error_message: error.message,
-    stack: error.stack,
-  });
+if (require.main === module) {
+  startServer().catch((error) => {
+    logger.error({
+      event: "server_start_failed",
+      error_name: error.name,
+      error_message: error.message,
+      stack: error.stack,
+    });
 
-  process.exit(1);
-});
+    process.exit(1);
+  });
+}
+
+module.exports = app;
