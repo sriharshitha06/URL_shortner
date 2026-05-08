@@ -38,6 +38,14 @@ function requestIdMiddleware(req, res, next) {
 function requestLogMiddleware(req, res, next) {
   const startedAt = process.hrtime.bigint();
 
+  logger.info({
+    event: "request_received",
+    request_id: req.requestId,
+    method: req.method,
+    path: req.path,
+    principal_id: req.principal_id,
+  });
+
   res.on("finish", () => {
     const latencyMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
 
@@ -377,35 +385,65 @@ app.post("/links", requireApiKey, createLinkRateLimit, handleCreateLink);
 
 app.get("/links", requireApiKey, async (req, res, next) => {
   try {
-    const requestedLimit = Number.parseInt(req.query.limit ?? "20", 10);
-    const requestedOffset = Number.parseInt(req.query.offset ?? "0", 10);
+    const limit = Number.parseInt(req.query.limit ?? "20", 10);
+    const requestedAfterId = req.query.after_id;
 
-    if (
-      Number.isNaN(requestedLimit) ||
-      Number.isNaN(requestedOffset) ||
-      requestedLimit <= 0 ||
-      requestedLimit > 100 ||
-      requestedOffset < 0
-    ) {
+    if (!Number.isInteger(limit) || limit <= 0) {
+      return sendError(req, res, 400, "VALIDATION_ERROR", "limit must be a positive integer.");
+    }
+
+    if (req.query.after_id !== undefined && (req.query.page !== undefined || req.query.offset !== undefined)) {
       return sendError(
         req,
         res,
         400,
-        "BAD_REQUEST",
-        "limit must be 1-100 and offset must be 0 or greater."
+        "VALIDATION_ERROR",
+        "Use after_id by itself, not with page or offset."
       );
     }
 
+    let offset;
+    let afterId = null;
+    let page;
+
+    if (requestedAfterId !== undefined) {
+      afterId = Number.parseInt(requestedAfterId, 10);
+
+      if (!Number.isInteger(afterId) || afterId <= 0) {
+        return sendError(req, res, 400, "VALIDATION_ERROR", "after_id must be a positive integer.");
+      }
+
+      offset = 0;
+    } else if (req.query.page !== undefined) {
+      page = Number.parseInt(req.query.page, 10);
+
+      if (!Number.isInteger(page) || page <= 0) {
+        return sendError(req, res, 400, "VALIDATION_ERROR", "page must be a positive integer.");
+      }
+
+      offset = (page - 1) * limit;
+    } else {
+      offset = Number.parseInt(req.query.offset ?? "0", 10);
+
+      if (!Number.isInteger(offset) || offset < 0) {
+        return sendError(req, res, 400, "VALIDATION_ERROR", "offset must be a non-negative integer.");
+      }
+    }
+
     const links = await listLinksForOwner({
-      limit: requestedLimit,
-      offset: requestedOffset,
+      limit,
+      offset,
+      afterId,
       principalId: req.principal_id,
     });
 
     return res.json({
       items: links.map((link) => formatLinkResponse(link, req)),
-      limit: requestedLimit,
-      offset: requestedOffset,
+      limit,
+      offset,
+      after_id: afterId,
+      next_after_id: links.length ? String(links[links.length - 1].id) : null,
+      ...(page !== undefined ? { page } : {})
     });
   } catch (error) {
     return next(error);

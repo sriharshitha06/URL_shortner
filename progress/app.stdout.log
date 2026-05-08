@@ -1,0 +1,7 @@
+{"level":"info","timestamp":"2026-05-07T14:36:36.033Z","event":"server_started","host":"0.0.0.0","port":3000}
+{"level":"info","timestamp":"2026-05-07T14:37:16.498Z","event":"request_received","request_id":"96d9bca1-f196-4f5b-b066-143e286c1223","method":"GET","path":"/nope99"}
+{"level":"info","timestamp":"2026-05-07T14:37:16.504Z","event":"request_finished","request_id":"96d9bca1-f196-4f5b-b066-143e286c1223","method":"GET","path":"/nope99","status":404,"latency_ms":6}
+{"level":"info","timestamp":"2026-05-07T14:37:18.378Z","event":"request_received","request_id":"1cb25509-641f-4d86-83f9-4920c69702aa","method":"POST","path":"/shorten"}
+{"level":"info","timestamp":"2026-05-07T14:37:18.400Z","event":"request_finished","request_id":"1cb25509-641f-4d86-83f9-4920c69702aa","method":"POST","path":"/shorten","status":400,"latency_ms":22}
+{"level":"info","timestamp":"2026-05-07T14:37:38.124Z","event":"request_received","request_id":"967ad8b7-3feb-47a6-a32c-a88dd3673edc","method":"POST","path":"/shorten"}
+{"level":"info","timestamp":"2026-05-07T14:37:38.164Z","event":"request_finished","request_id":"967ad8b7-3feb-47a6-a32c-a88dd3673edc","method":"POST","path":"/shorten","status":201,"latency_ms":40,"principal_id":"A"}

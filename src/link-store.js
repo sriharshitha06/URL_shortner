@@ -189,29 +189,51 @@ async function listLinks({ limit, offset }) {
   return result.rows.map(mapLinkRow);
 }
 
-async function listLinksForOwner({ limit, offset, principalId }) {
+async function listLinksForOwner({ limit, offset, afterId = null, principalId }) {
   if (env.useInMemoryStore) {
     const now = Date.now();
-    return inMemoryLinks
-      .filter(
-        (link) => link.created_by === principalId && !isExpired(link.expires_at, now)
-      )
-      .slice(offset, offset + limit)
-      .map(mapLinkRow);
+    const matches = inMemoryLinks.filter((link) => {
+      return (
+        link.created_by === principalId &&
+        !isExpired(link.expires_at, now) &&
+        (afterId == null || link.id < afterId)
+      );
+    });
+
+    const windowed = afterId == null ? matches.slice(offset, offset + limit) : matches.slice(0, limit);
+
+    return windowed.map(mapLinkRow);
   }
 
-  const result = await query(
-    `
-      SELECT id, code, long_url, created_at, created_by, expires_at, tags
-      FROM links
-      WHERE created_by = $1
-        AND (expires_at IS NULL OR expires_at > NOW())
-      ORDER BY id DESC
-      LIMIT $2
-      OFFSET $3
-    `,
-    [principalId, limit, offset]
-  );
+  let result;
+
+  if (afterId == null) {
+    result = await query(
+      `
+        SELECT id, code, long_url, created_at, created_by, expires_at, tags
+        FROM links
+        WHERE created_by = $1
+          AND (expires_at IS NULL OR expires_at > NOW())
+        ORDER BY id DESC
+        LIMIT $2
+        OFFSET $3
+      `,
+      [principalId, limit, offset]
+    );
+  } else {
+    result = await query(
+      `
+        SELECT id, code, long_url, created_at, created_by, expires_at, tags
+        FROM links
+        WHERE created_by = $1
+          AND id < $2
+          AND (expires_at IS NULL OR expires_at > NOW())
+        ORDER BY id DESC
+        LIMIT $3
+      `,
+      [principalId, afterId, limit]
+    );
+  }
 
   return result.rows.map(mapLinkRow);
 }

@@ -1,0 +1,6 @@
+{"level":"info","timestamp":"2026-05-07T14:03:57.215Z","event":"server_started","host":"0.0.0.0","port":3000}
+{"level":"info","timestamp":"2026-05-07T14:04:16.575Z","event":"request_finished","request_id":"3ba62232-b26d-49af-9ed0-d5a01a00bd64","method":"GET","path":"/links","status":200,"latency_ms":21,"principal_id":"A"}
+{"level":"info","timestamp":"2026-05-07T14:04:16.880Z","event":"request_finished","request_id":"db07b4de-c048-4dab-8c9a-59b4038be65d","method":"POST","path":"/shorten","status":201,"latency_ms":17,"principal_id":"A"}
+{"level":"info","timestamp":"2026-05-07T14:04:17.130Z","event":"request_finished","request_id":"8284e63a-b6bf-4a6a-8d2d-f630af22422b","method":"GET","path":"/links","status":200,"latency_ms":4,"principal_id":"A"}
+{"level":"info","timestamp":"2026-05-07T14:20:31.760Z","event":"request_finished","request_id":"6864c092-2318-4672-8bba-ecb156e1578d","method":"GET","path":"/links","status":400,"latency_ms":1,"principal_id":"A"}
+{"level":"info","timestamp":"2026-05-07T14:20:33.082Z","event":"request_finished","request_id":"2523d39f-0423-450f-84ef-d32788466905","method":"GET","path":"/health","status":200,"latency_ms":1}

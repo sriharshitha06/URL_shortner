@@ -1,3 +1,5 @@
+const env = require("../config/env");
+
 const SECRET_KEYS = [
   "authorization",
   "x-api-key",
@@ -30,7 +32,21 @@ function redact(value) {
   return output;
 }
 
+const LOG_PRIORITIES = {
+  info: 20,
+  warn: 30,
+  error: 40,
+};
+
+function shouldLog(level) {
+  return LOG_PRIORITIES[level] >= LOG_PRIORITIES[env.logLevel];
+}
+
 function write(level, fields) {
+  if (!shouldLog(level)) {
+    return;
+  }
+
   const safeFields = redact({
     level,
     timestamp: new Date().toISOString(),
@@ -41,6 +57,8 @@ function write(level, fields) {
 
   if (level === "error") {
     console.error(line);
+  } else if (level === "warn") {
+    console.warn(line);
   } else {
     console.log(line);
   }

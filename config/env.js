@@ -32,9 +32,15 @@ function parseJsonEnv(name) {
 const portValue = process.env.PORT || "3000";
 const port = Number.parseInt(portValue, 10);
 const useInMemoryStore = process.env.USE_IN_MEMORY_STORE === "true";
+const allowedLogLevels = new Set(["info", "warn", "error"]);
+const rawLogLevel = (process.env.LOG_LEVEL || "info").trim().toLowerCase();
 
 if (Number.isNaN(port) || port <= 0) {
   throw new Error("PORT must be a positive integer");
+}
+
+if (!allowedLogLevels.has(rawLogLevel)) {
+  throw new Error("LOG_LEVEL must be one of: info, warn, error");
 }
 
 const env = {
@@ -42,6 +48,7 @@ const env = {
     ? process.env.DATABASE_URL || ""
     : getRequiredEnv("DATABASE_URL"),
   port,
+  logLevel: rawLogLevel,
   apiKeys: parseJsonEnv("API_KEYS"),
   rateLimits: {
     createLinkPerMinute: 10,
