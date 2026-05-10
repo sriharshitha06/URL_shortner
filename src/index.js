@@ -149,7 +149,7 @@ function isAllowedRedirectUrl(value) {
 }
 
 function normalizeTags(value) {
-  if (value === null) {
+  if (value === null || value === undefined) {
     return [];
   }
 
@@ -181,7 +181,7 @@ function normalizeTags(value) {
 }
 
 function normalizeExpiresAt(value) {
-  if (value === null) {
+  if (value === null || value === undefined) {
     return null;
   }
 
@@ -199,7 +199,7 @@ function normalizeExpiresAt(value) {
 }
 
 function normalizeSearchQuery(value) {
-  if (value === null || value === "") {
+  if (value === null || value === undefined || value === "") {
     return "";
   }
 
@@ -217,7 +217,7 @@ function normalizeSearchQuery(value) {
 }
 
 function normalizeOptionalTag(value) {
-  if (value === null || value === "") {
+  if (value === null || value === undefined || value === "") {
     return null;
   }
 
@@ -235,7 +235,7 @@ function normalizeOptionalTag(value) {
 }
 
 function normalizeTimestampQuery(value) {
-  if (value === null || value === "") {
+  if (value === null || value === undefined || value === "") {
     return null;
   }
 
@@ -349,7 +349,7 @@ async function handleCreateLink(req, res, next) {
     );
   }
 
-  if (rawExpiresAt !== null && !expiresAt) {
+  if (rawExpiresAt !== null && rawExpiresAt !== undefined && !expiresAt) {
     return sendError(
       req,
       res,
@@ -446,7 +446,7 @@ app.get("/links", requireApiKey, async (req, res, next) => {
       offset,
       after_id: afterId,
       next_after_id: links.length ? String(links[links.length - 1].id) : null,
-      ...(page !== undefined ? { page } : {})
+      ...(page !== undefined ? { page } : {}),
     });
   } catch (error) {
     return next(error);
