@@ -20,7 +20,7 @@ async function waitForServer(url, timeoutMs = 10_000) {
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
-    if (serverProcess?.exitCode != null) {
+    if (serverProcess?.exitCode !== null) {
       throw new Error(`Server exited early with code ${serverProcess.exitCode}`);
     }
 
@@ -106,7 +106,7 @@ test.beforeEach(async () => {
 });
 
 test.after(async () => {
-  if (!serverProcess || serverProcess.exitCode != null) {
+  if (!serverProcess || serverProcess.exitCode !== null) {
     return;
   }
 

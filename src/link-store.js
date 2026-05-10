@@ -30,7 +30,7 @@ function mapLinkRow(row) {
     created_by: row.created_by,
     expires_at: row.expires_at,
     tags: row.tags || [],
-    click_count: row.click_count == null ? undefined : Number(row.click_count),
+    click_count: row.click_count === null ? undefined : Number(row.click_count),
   };
 }
 
@@ -196,18 +196,18 @@ async function listLinksForOwner({ limit, offset, afterId = null, principalId })
       return (
         link.created_by === principalId &&
         !isExpired(link.expires_at, now) &&
-        (afterId == null || link.id < afterId)
+        (afterId === null || link.id < afterId)
       );
     });
 
-    const windowed = afterId == null ? matches.slice(offset, offset + limit) : matches.slice(0, limit);
+    const windowed = afterId === null ? matches.slice(offset, offset + limit) : matches.slice(0, limit);
 
     return windowed.map(mapLinkRow);
   }
 
   let result;
 
-  if (afterId == null) {
+  if (afterId === null) {
     result = await query(
       `
         SELECT id, code, long_url, created_at, created_by, expires_at, tags

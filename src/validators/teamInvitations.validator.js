@@ -9,7 +9,7 @@ function validateInvitationRequest(body) {
     role: body?.role,
   };
 
-  if (value.teamId == null || value.teamId === "") {
+  if (value.teamId === null || value.teamId === "") {
     fields.teamId = "teamId is required.";
   }
 

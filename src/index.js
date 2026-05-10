@@ -101,7 +101,10 @@ function createUniqueShortCode() {
 }
 
 function containsControlCharacters(value) {
-  return /[\u0000-\u001F\u007F]/.test(value);
+  return [...value].some((char) => {
+    const code = char.charCodeAt(0);
+    return code <= 31 || code === 127;
+  });
 }
 
 function normalizeUrlInput(value) {
@@ -146,7 +149,7 @@ function isAllowedRedirectUrl(value) {
 }
 
 function normalizeTags(value) {
-  if (value == null) {
+  if (value === null) {
     return [];
   }
 
@@ -178,7 +181,7 @@ function normalizeTags(value) {
 }
 
 function normalizeExpiresAt(value) {
-  if (value == null) {
+  if (value === null) {
     return null;
   }
 
@@ -196,7 +199,7 @@ function normalizeExpiresAt(value) {
 }
 
 function normalizeSearchQuery(value) {
-  if (value == null || value === "") {
+  if (value === null || value === "") {
     return "";
   }
 
@@ -214,7 +217,7 @@ function normalizeSearchQuery(value) {
 }
 
 function normalizeOptionalTag(value) {
-  if (value == null || value === "") {
+  if (value === null || value === "") {
     return null;
   }
 
@@ -232,7 +235,7 @@ function normalizeOptionalTag(value) {
 }
 
 function normalizeTimestampQuery(value) {
-  if (value == null || value === "") {
+  if (value === null || value === "") {
     return null;
   }
 
@@ -346,7 +349,7 @@ async function handleCreateLink(req, res, next) {
     );
   }
 
-  if (rawExpiresAt != null && !expiresAt) {
+  if (rawExpiresAt !== null && !expiresAt) {
     return sendError(
       req,
       res,
@@ -356,7 +359,7 @@ async function handleCreateLink(req, res, next) {
     );
   }
 
-  if (tags == null) {
+  if (tags === null) {
     return sendError(
       req,
       res,
@@ -461,7 +464,7 @@ app.get("/links/search", requireApiKey, async (req, res, next) => {
     const sortBy = req.query.sort_by ?? "created_at";
     const allowedSortBy = new Set(["created_at", "click_count"]);
 
-    if (q == null) {
+    if (q === null) {
       return sendError(
         req,
         res,
