@@ -238,6 +238,24 @@ async function listLinksForOwner({ limit, offset, afterId = null, principalId })
   return result.rows.map(mapLinkRow);
 }
 
+async function countActiveLinks() {
+  if (env.useInMemoryStore) {
+    const now = Date.now();
+
+    return inMemoryLinks.filter((link) => !isExpired(link.expires_at, now)).length;
+  }
+
+  const result = await query(
+    `
+      SELECT COUNT(*)::int AS total
+      FROM links
+      WHERE expires_at IS NULL OR expires_at > NOW()
+    `
+  );
+
+  return result.rows[0]?.total ?? 0;
+}
+
 async function searchLinksForOwner({
   principalId,
   queryText = "",
@@ -371,6 +389,7 @@ async function searchLinksForOwner({
 
 module.exports = {
   createLink,
+  countActiveLinks,
   deleteLinkByCodeForOwner,
   getLinkByCode,
   getLinkById,

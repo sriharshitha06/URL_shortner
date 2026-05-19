@@ -7,8 +7,11 @@ const PORT = String(3100 + Math.floor(Math.random() * 500));
 const BASE_URL = `http://${HOST}:${PORT}`;
 const API_KEY_A = "test-key-a";
 const API_KEY_B = "test-key-b";
+const APP_VERSION = "test-sha-123";
 
 let serverProcess;
+let stdoutBuffer = "";
+let stderrBuffer = "";
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -40,8 +43,8 @@ async function waitForServer(url, timeoutMs = 10_000) {
   throw new Error("Server did not become ready in time.");
 }
 
-async function request(path, { method = "GET", apiKey, body, redirect } = {}) {
-  const headers = {};
+async function request(path, { method = "GET", apiKey, body, redirect, headers: extraHeaders } = {}) {
+  const headers = { ...(extraHeaders || {}) };
 
   if (apiKey) {
     headers["X-API-Key"] = apiKey;
@@ -73,7 +76,10 @@ test.before(async () => {
     cwd: process.cwd(),
     env: {
       ...process.env,
+      APP_ENV: "test",
       PORT,
+      SERVICE_NAME: "url-shortener",
+      APP_VERSION,
       USE_IN_MEMORY_STORE: "true",
       API_KEYS: JSON.stringify({
         [API_KEY_A]: "A",
@@ -81,13 +87,19 @@ test.before(async () => {
       }),
       DATABASE_URL: "postgresql://unused:unused@localhost:5432/unused",
     },
-    stdio: ["ignore", "ignore", "pipe"],
+    stdio: ["ignore", "pipe", "pipe"],
   });
 
   let startupError = "";
 
+  serverProcess.stdout.on("data", (chunk) => {
+    stdoutBuffer += chunk.toString();
+  });
+
   serverProcess.stderr.on("data", (chunk) => {
-    startupError += chunk.toString();
+    const text = chunk.toString();
+    startupError += text;
+    stderrBuffer += text;
   });
 
   await waitForServer(`${BASE_URL}/health`);
@@ -98,6 +110,9 @@ test.before(async () => {
 });
 
 test.beforeEach(async () => {
+  stdoutBuffer = "";
+  stderrBuffer = "";
+
   const { response } = await request("/__test/reset", {
     method: "POST",
   });
@@ -130,6 +145,26 @@ test("creates a link", async () => {
   assert.equal(json.long_url, "https://example.com/module-09-create");
   assert.match(json.short_url, /\/r\/[A-Za-z0-9]{6}$/);
   assert.deepEqual(json.tags, ["module-09", "create"]);
+});
+
+test("exposes versioned liveness and readiness metadata", async () => {
+  const live = await request("/live");
+  const ready = await request("/ready");
+
+  assert.equal(live.response.status, 200);
+  assert.equal(live.json.status, "ok");
+  assert.equal(live.json.service, "url-shortener");
+  assert.equal(live.json.version, APP_VERSION);
+  assert.equal(live.json.app_env, "test");
+  assert.equal(typeof live.json.uptime_seconds, "number");
+
+  assert.equal(ready.response.status, 200);
+  assert.equal(ready.json.status, "ready");
+  assert.equal(ready.json.store, "in_memory");
+  assert.equal(ready.json.version, APP_VERSION);
+  assert.equal(ready.json.checks.database, "skipped");
+  assert.equal(ready.json.checks.mode, "in_memory");
+  assert.equal(typeof ready.json.uptime_seconds, "number");
 });
 
 test("redirects to the stored long URL", async () => {
@@ -241,4 +276,82 @@ test("rejects encoded URL bypass strings and does not store them", async () => {
     afterList.json.items.some((item) => item.long_url === invalidUrl),
     false
   );
+});
+
+test("exposes request metrics with counts, latency, and business gauges", async () => {
+  await request("/health");
+  await request("/ready");
+  await request("/__test/error");
+
+  const { response, text } = await request("/metrics");
+
+  assert.equal(response.status, 200);
+  assert.match(
+    response.headers.get("content-type"),
+    /text\/plain;.*version=0\.0\.4/
+  );
+  assert.match(text, /# HELP http_requests_total/);
+  assert.match(
+    text,
+    /http_requests_total\{service="url-shortener",method="GET",path="\/health",status="200"\} [1-9]\d*/
+  );
+  assert.match(
+    text,
+    /http_requests_total\{service="url-shortener",method="GET",path="\/__test\/error",status="500"\} [1-9]\d*/
+  );
+  assert.match(text, /http_request_duration_seconds_bucket/);
+  assert.match(
+    text,
+    /links_total\{service="url-shortener",store="in_memory"\} 0/
+  );
+});
+
+test("emits structured request and error logs with request IDs", async () => {
+  const requestId = "req-observability-test";
+
+  await request("/health", {
+    headers: {
+      "X-Request-ID": requestId,
+    },
+  });
+  await request("/__test/error", {
+    headers: {
+      "X-Request-ID": requestId,
+    },
+  });
+
+  await sleep(200);
+
+  const logLines = `${stdoutBuffer}\n${stderrBuffer}`
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+
+  const requestReceived = logLines.find(
+    (entry) => entry.event === "request_received" && entry.request_id === requestId
+  );
+  const requestFinished = logLines.find(
+    (entry) =>
+      entry.event === "request_finished" &&
+      entry.request_id === requestId &&
+      entry.status === 200
+  );
+  const requestFailed = logLines.find(
+    (entry) => entry.event === "request_failed" && entry.request_id === requestId
+  );
+
+  assert.equal(requestReceived.service_name, "url-shortener");
+  assert.equal(requestReceived.message, "request received");
+  assert.equal(requestReceived.level, "info");
+
+  assert.equal(requestFinished.service_name, "url-shortener");
+  assert.equal(requestFinished.message, "request completed");
+  assert.equal(requestFinished.level, "info");
+
+  assert.equal(requestFailed.service_name, "url-shortener");
+  assert.equal(requestFailed.message, "request failed");
+  assert.equal(requestFailed.level, "error");
+  assert.equal(requestFailed.status, 500);
+  assert.match(requestFailed.stack, /Intentional test error/);
 });

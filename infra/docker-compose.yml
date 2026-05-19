@@ -1,4 +1,47 @@
 services:
+  app:
+    image: ${APP_IMAGE:-caw-express-app:local}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: ${APP_VERSION:-dev-local}
+    container_name: linkops-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      SERVICE_NAME: ${SERVICE_NAME:-url-shortener}
+      APP_VERSION: ${APP_VERSION:-dev-local}
+      PORT: 3000
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/linkops}
+      API_KEYS: ${API_KEYS:-{"dev-key-a":"A","dev-key-b":"B"}}
+      USE_IN_MEMORY_STORE: ${USE_IN_MEMORY_STORE:-false}
+      DATABASE_QUERY_TIMEOUT_MS: ${DATABASE_QUERY_TIMEOUT_MS:-1000}
+      DATABASE_CIRCUIT_RESET_TIMEOUT_MS: ${DATABASE_CIRCUIT_RESET_TIMEOUT_MS:-30000}
+      DATABASE_CIRCUIT_VOLUME_THRESHOLD: ${DATABASE_CIRCUIT_VOLUME_THRESHOLD:-5}
+      DATABASE_CIRCUIT_ERROR_THRESHOLD_PERCENT: ${DATABASE_CIRCUIT_ERROR_THRESHOLD_PERCENT:-50}
+      DATABASE_RETRY_ATTEMPTS: ${DATABASE_RETRY_ATTEMPTS:-2}
+      DATABASE_RETRY_BASE_DELAY_MS: ${DATABASE_RETRY_BASE_DELAY_MS:-100}
+      DATABASE_RETRY_MAX_DELAY_MS: ${DATABASE_RETRY_MAX_DELAY_MS:-500}
+      DATABASE_RETRY_JITTER_MS: ${DATABASE_RETRY_JITTER_MS:-50}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/live').then(r=>process.exit(r.ok ? 0 : 1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
   postgres:
     image: postgres:16-alpine
     container_name: linkops-postgres

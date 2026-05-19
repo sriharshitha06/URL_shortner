@@ -1,0 +1,23 @@
+[2026-05-10T18:05:37.799Z] INFO url-shortener server started {"event":"server_started","host":"0.0.0.0","port":3000}
+[2026-05-10T18:05:57.807Z] INFO url-shortener [ca6b0caf-972b-4880-84da-615b51ac28b6] request received {"event":"request_received","method":"GET","path":"/ready"}
+[2026-05-10T18:05:57.813Z] INFO url-shortener [ca6b0caf-972b-4880-84da-615b51ac28b6] request completed {"event":"request_finished","method":"GET","path":"/ready","status":200,"latency_ms":6}
+[2026-05-10T18:05:58.552Z] INFO url-shortener [3fa98054-7667-44b4-aa98-9f4edbdca6c0] request received {"event":"request_received","method":"GET","path":"/live"}
+[2026-05-10T18:05:58.557Z] INFO url-shortener [3fa98054-7667-44b4-aa98-9f4edbdca6c0] request completed {"event":"request_finished","method":"GET","path":"/live","status":200,"latency_ms":5}
+[2026-05-10T18:06:14.154Z] INFO url-shortener [e552e1b7-8815-4511-a3d6-3b80bfc021d1] request received {"event":"request_received","method":"GET","path":"/ready"}
+[2026-05-10T18:06:14.159Z] INFO url-shortener [e552e1b7-8815-4511-a3d6-3b80bfc021d1] request completed {"event":"request_finished","method":"GET","path":"/ready","status":200,"latency_ms":4}
+[2026-05-10T18:06:15.303Z] INFO url-shortener [54df306a-a1b6-45b9-937e-ff535db31723] request received {"event":"request_received","method":"GET","path":"/metrics"}
+[2026-05-10T18:06:15.310Z] INFO url-shortener [54df306a-a1b6-45b9-937e-ff535db31723] request completed {"event":"request_finished","method":"GET","path":"/metrics","status":200,"latency_ms":7}
+[2026-05-10T18:06:16.364Z] INFO url-shortener [7fa19394-17e0-47f3-8cab-b43820ceb978] request received {"event":"request_received","method":"GET","path":"/__test/error"}
+[2026-05-10T18:06:16.369Z] INFO url-shortener [7fa19394-17e0-47f3-8cab-b43820ceb978] request completed {"event":"request_finished","method":"GET","path":"/__test/error","status":500,"latency_ms":5}
+[2026-05-10T18:06:28.171Z] INFO url-shortener [567cff13-34d3-4204-9121-0c91571ee010] request received {"event":"request_received","method":"GET","path":"/metrics"}
+[2026-05-10T18:06:28.176Z] INFO url-shortener [567cff13-34d3-4204-9121-0c91571ee010] request completed {"event":"request_finished","method":"GET","path":"/metrics","status":200,"latency_ms":5}
+[2026-05-10T18:07:06.853Z] INFO url-shortener [314b9dff-a558-41cc-8d02-3c6066402433] request received {"event":"request_received","method":"GET","path":"/metrics"}
+[2026-05-10T18:07:06.858Z] INFO url-shortener [314b9dff-a558-41cc-8d02-3c6066402433] request completed {"event":"request_finished","method":"GET","path":"/metrics","status":200,"latency_ms":5}
+[2026-05-10T18:07:07.405Z] INFO url-shortener [880362a3-2c27-499a-be63-54265a02b75e] request received {"event":"request_received","method":"GET","path":"/ready"}
+[2026-05-10T18:07:07.409Z] INFO url-shortener [880362a3-2c27-499a-be63-54265a02b75e] request completed {"event":"request_finished","method":"GET","path":"/ready","status":200,"latency_ms":4}
+[2026-05-10T18:07:07.776Z] INFO url-shortener [df7d7b46-9464-46cb-8abc-949ca41556d8] request received {"event":"request_received","method":"GET","path":"/live"}
+[2026-05-10T18:07:07.778Z] INFO url-shortener [df7d7b46-9464-46cb-8abc-949ca41556d8] request completed {"event":"request_finished","method":"GET","path":"/live","status":200,"latency_ms":2}
+[2026-05-10T18:07:36.457Z] INFO url-shortener [7f7d3959-8b2d-4027-a4c5-49b83a4b5ccf] request received {"event":"request_received","method":"GET","path":"/metrics"}
+[2026-05-10T18:07:36.460Z] INFO url-shortener [7f7d3959-8b2d-4027-a4c5-49b83a4b5ccf] request completed {"event":"request_finished","method":"GET","path":"/metrics","status":200,"latency_ms":3}
+[2026-05-10T18:26:33.144Z] INFO url-shortener [4a3e7aea-ffb9-4d3c-b79c-1ba0ab1989ad] request received {"event":"request_received","method":"GET","path":"/live"}
+[2026-05-10T18:26:33.158Z] INFO url-shortener [4a3e7aea-ffb9-4d3c-b79c-1ba0ab1989ad] request completed {"event":"request_finished","method":"GET","path":"/live","status":200,"latency_ms":14}

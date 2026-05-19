@@ -50,10 +50,11 @@ function write(level, fields) {
   const safeFields = redact({
     level,
     timestamp: new Date().toISOString(),
+    service_name: env.serviceName,
     ...fields,
   });
-
-  const line = JSON.stringify(safeFields);
+  const line =
+    env.appEnv === "development" ? formatPrettyLine(safeFields) : JSON.stringify(safeFields);
 
   if (level === "error") {
     console.error(line);
@@ -62,6 +63,22 @@ function write(level, fields) {
   } else {
     console.log(line);
   }
+}
+
+function formatPrettyLine(fields) {
+  const {
+    timestamp,
+    level,
+    service_name: serviceName,
+    message,
+    request_id: requestId,
+    ...rest
+  } = fields;
+  const suffix = Object.keys(rest).length ? ` ${JSON.stringify(rest)}` : "";
+
+  return `[${timestamp}] ${level.toUpperCase()} ${serviceName} ${
+    requestId ? `[${requestId}] ` : ""
+  }${message || "log"}${suffix}`;
 }
 
 module.exports = {

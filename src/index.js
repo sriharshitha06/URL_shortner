@@ -2,10 +2,16 @@ const express = require("express");
 const crypto = require("crypto");
 const env = require("../config/env");
 const { requireApiKey } = require("./auth");
-const { closeDatabase, initDatabase, query } = require("./db");
+const {
+  DependencyUnavailableError,
+  closeDatabase,
+  initDatabase,
+  query,
+} = require("./db");
 const { createRateLimiter } = require("./rate-limit");
 const { sendError } = require("./http-response");
 const logger = require("./logger");
+const { metricsHandler, metricsMiddleware } = require("./metrics");
 const teamInvitationsRouter = require("./routes/teamInvitations.routes");
 const {
   createLink,
@@ -19,8 +25,23 @@ const {
 
 const app = express();
 const HOST = "0.0.0.0";
+const startedAt = Date.now();
 
 app.set("trust proxy", true);
+
+function getUptimeSeconds() {
+  return Math.floor((Date.now() - startedAt) / 1000);
+}
+
+function getBaseHealthPayload(status) {
+  return {
+    status,
+    service: env.serviceName,
+    version: env.appVersion,
+    app_env: env.appEnv,
+    uptime_seconds: getUptimeSeconds(),
+  };
+}
 
 function requestIdMiddleware(req, res, next) {
   const incomingId = req.header("X-Request-ID");
@@ -40,6 +61,7 @@ function requestLogMiddleware(req, res, next) {
 
   logger.info({
     event: "request_received",
+    message: "request received",
     request_id: req.requestId,
     method: req.method,
     path: req.path,
@@ -51,6 +73,7 @@ function requestLogMiddleware(req, res, next) {
 
     logger.info({
       event: "request_finished",
+      message: "request completed",
       request_id: req.requestId,
       method: req.method,
       path: req.path,
@@ -65,6 +88,7 @@ function requestLogMiddleware(req, res, next) {
 
 app.use(requestIdMiddleware);
 app.use(requestLogMiddleware);
+app.use(metricsMiddleware);
 app.use(express.json());
 app.use(teamInvitationsRouter);
 
@@ -291,18 +315,26 @@ function formatLinkResponse(link, req) {
 }
 
 app.get("/", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json(getBaseHealthPayload("ok"));
+});
+
+app.get("/live", (_req, res) => {
+  res.json(getBaseHealthPayload("ok"));
 });
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json(getBaseHealthPayload("ok"));
 });
 
 app.get("/ready", async (_req, res) => {
   if (env.useInMemoryStore) {
     return res.status(200).json({
-      status: "ready",
+      ...getBaseHealthPayload("ready"),
       store: "in_memory",
+      checks: {
+        database: "skipped",
+        mode: "in_memory",
+      },
     });
   }
 
@@ -310,21 +342,33 @@ app.get("/ready", async (_req, res) => {
     await query("SELECT 1");
 
     return res.status(200).json({
-      status: "ready",
+      ...getBaseHealthPayload("ready"),
       store: "postgres",
+      checks: {
+        database: "connected",
+      },
     });
   } catch {
     return res.status(503).json({
-      status: "not_ready",
+      ...getBaseHealthPayload("not_ready"),
       store: "postgres",
+      checks: {
+        database: "disconnected",
+      },
     });
   }
 });
+
+app.get("/metrics", metricsHandler);
 
 if (env.useInMemoryStore) {
   app.post("/__test/reset", (_req, res) => {
     resetInMemoryStore();
     res.status(204).send();
+  });
+
+  app.get("/__test/error", (_req, _res, next) => {
+    next(new Error("Intentional test error"));
   });
 }
 
@@ -623,8 +667,31 @@ app.use((err, req, res, next) => {
     return sendError(req, res, 400, "BAD_REQUEST", "Invalid JSON body");
   }
 
+  if (err instanceof DependencyUnavailableError) {
+    logger.warn({
+      event: "request_degraded",
+      message: "dependency unavailable",
+      request_id: req.requestId,
+      method: req.method,
+      path: req.path,
+      status: err.statusCode,
+      dependency: err.details?.dependency || "unknown",
+      operation: err.details?.operation || "unknown",
+      principal_id: req.principal_id,
+    });
+
+    return sendError(
+      req,
+      res,
+      err.statusCode,
+      err.errorCode,
+      "A required dependency is temporarily unavailable."
+    );
+  }
+
   logger.error({
     event: "request_failed",
+    message: "request failed",
     request_id: req.requestId,
     method: req.method,
     path: req.path,
@@ -650,8 +717,11 @@ async function startServer() {
   const server = app.listen(env.port, HOST, () => {
     logger.info({
       event: "server_started",
+      message: "server started",
       host: HOST,
       port: env.port,
+      app_env: env.appEnv,
+      version: env.appVersion,
     });
   });
 
@@ -672,6 +742,7 @@ if (require.main === module) {
   startServer().catch((error) => {
     logger.error({
       event: "server_start_failed",
+      message: "server failed to start",
       error_name: error.name,
       error_message: error.message,
       stack: error.stack,

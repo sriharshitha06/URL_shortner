@@ -7,8 +7,10 @@ RUN npm ci --omit=dev
 FROM node:20-alpine AS runtime
 WORKDIR /app
 
+ARG APP_VERSION=dev-local
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV APP_VERSION=$APP_VERSION
 
 COPY --chown=node:node --from=deps /app/node_modules ./node_modules
 COPY --chown=node:node package.json ./
